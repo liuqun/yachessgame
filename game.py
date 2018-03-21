@@ -38,14 +38,21 @@ class ChessboardSimulator:
         return id
 
     @staticmethod
-    def __parse(coordinate_position_str):
+    def __parse(coordinate_position_str) -> tuple:
         """坐标解析
 
+        将字符串"A1"～"H8"转换为二维坐标(x, y), 要求字符串第一个字符必须是[a-h|A-H], 第二个字符必须是[1-8].
+        否则抛出一个 ValueError 异常.
         :type coordinate_position_str: str
-        :return 坐标位置
+        :return 坐标位置 (x, y)
         """
-        result = coordinate_position_str.upper()
-        return result
+        if len(coordinate_position_str) < 2:
+            raise ValueError('Invalid coordinate str %r' % (coordinate_position_str))
+        x = ord(coordinate_position_str[0].upper()) - ord('A')
+        y = ord(coordinate_position_str[1]) - ord('1')
+        if not x in range(8) or not y in range(8):
+            raise ValueError('Invalid coordinate str %r' % (coordinate_position_str))
+        return x, y
 
 
 class Piece:
