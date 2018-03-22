@@ -63,6 +63,8 @@ def parse_coordinate_str(coordinate_str):
 class Piece:
     id = None
     owner_id = None
+    move_directions = set()
+    range_limit = 0  # 棋子最大移动格数, 用正整数 N 代表棋子最大移动距离(倍数 N). 例如王只能移动1格(N=1), 车象后可以移动7格(N=7)
 
     def __repr__(self):
         id = self.id or -1
@@ -70,29 +72,58 @@ class Piece:
         s = '<%s id=%d,owner_id=%d>' % (type(self).__name__, id, owner_id)
         return s
 
+    def get_fire_coverage(self, coordinate, chessboard_data):
+        """棋子火力范围, 包括棋子所防守的友方棋子所在的格子
+
+        :rtype : {(0,0), (7,7)}
+        """
+        nodes = set()
+        for dx, dy in self.move_directions:
+            x = coordinate[0] + dx
+            y = coordinate[1] + dy
+            for i in range(self.range_limit):
+                if x < 0 or x >= 8 or y < 0 or y >= 8:
+                    break
+                nodes.add((x, y))
+                target = chessboard_data[(x, y)]
+                if target is None:
+                    x += dx
+                    y += dy
+                    continue
+                else:
+                    break
+        return nodes
+
 
 class King(Piece):
-    pass
+    move_directions = {(1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1), (0, -1), (1, -1)}
+    range_limit = 1
 
 
 class Queen(Piece):
-    pass
+    move_directions = {(1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1), (0, -1), (1, -1)}
+    range_limit = 7
 
 
 class Rook(Piece):
-    pass
+    move_directions = {(1, 0), (0, 1), (-1, 0), (0, -1)}
+    range_limit = 7
 
 
 class Knight(Piece):
-    pass
+    move_directions = {(2, 1), (1, 2), (-1, 2), (-2, 1), (-2, -1), (-1, -2), (1, -2), (2, -1)}
+    range_limit = 1
 
 
 class Bishop(Piece):
-    pass
+    move_directions = {(1, 1), (-1, 1), (-1, -1), (1, -1)}
+    range_limit = 7
 
 
 class Pawn(Piece):
-    pass
+    def get_fire_coverage(self, coordinate, chessboard_data):
+        nodes = set()
+        return nodes
 
 
 def piece_symbol_from_instance(piece_instance):
@@ -212,6 +243,36 @@ class Game():
     class InvalidMove(Exception):
         pass
 
+    def get_valid_destinations_of_piece_at(self, from_coordinate_str):
+        piece_id = self.chessboard.get_piece_id(from_coordinate_str)
+        if piece_id is None:
+            raise Game.InvalidMove('There is no piece at %r' % from_coordinate_str)
+        piece = self.piece_list[piece_id]
+        fire_coverage = self.get_fire_coverage_of_piece_at(from_coordinate_str)
+        destination_coordinates = set()
+        for x, y in fire_coverage:
+            target_piece_id = self.chessboard.data[(x, y)]
+            if target_piece_id is None:
+                pass
+            else:
+                target_piece = self.piece_list[target_piece_id]
+                if target_piece.owner_id == piece.owner_id:  # 目的地棋盘格子上不能有己方棋子阻挡
+                    continue
+            destination_coordinates.add((x, y))
+        # 将(x,y)坐标转换为输出字符串列表
+        result = []
+        for x, y in destination_coordinates:
+            result.append('%c%c' % (chr(ord('A') + x), chr(ord('1') + y)))
+        return sorted(result)
+
+    def get_fire_coverage_of_piece_at(self, coordinate_str):
+        piece_id = self.chessboard.get_piece_id(coordinate_str)
+        if piece_id is None:
+            raise Game.InvalidMove('There is no piece at %r' % coordinate_str)
+        piece = self.piece_list[piece_id]
+        coordinate = parse_coordinate_str(coordinate_str)
+        return piece.get_fire_coverage(coordinate, chessboard_data=self.chessboard.data)
+
 
 if '__main__' == __name__:
     game = Game()
@@ -244,3 +305,12 @@ if '__main__' == __name__:
     print('\n\nWhite knight B1->C3:\n')
     game.move_piece('B1', 'C3')
     game.print_status()
+    # 棋子走法求解展示:
+    print('Check available moves of the black queen at D5:')
+    black_queen_move_selections = game.get_valid_destinations_of_piece_at('D5')
+    print(sorted(black_queen_move_selections))
+    print()
+    print('Check available moves of the white knight at C3:')
+    white_knight_c3_move_selections = game.get_valid_destinations_of_piece_at('C3')
+    print(sorted(white_knight_c3_move_selections))
+    print()
