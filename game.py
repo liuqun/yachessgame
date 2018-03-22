@@ -165,6 +165,35 @@ class Game():
             print()
         print('   A B C D E F G H')
 
+    # “福斯夫-爱德华兹记号法”[Forsyth-Edwards Notation](https://en.wikipedia.org/wiki/Forsyth–Edwards_Notation)
+    # 表示开局状态的 FEN 字符串为: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR'
+    # FEN 为每种棋子规定了一个字母、用大小写表示黑棋或者白棋、用斜线分割不同的行、用数字表示空白
+    @property
+    def fen_piece_placement(self) -> str:
+        fen_list = []
+        for y_str in '8', '7', '6', '5', '4', '3', '2', '1':
+            cnt = 0  # 统计同一行上有多少个连续空格
+            for x_str in 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H':
+                coordinate_str = x_str + y_str
+                piece_id = self.chessboard.get_piece_id(coordinate_str)
+                if piece_id is None:
+                    cnt += 1
+                    continue
+                if cnt >= 1:
+                    fen_list.append('%d' % cnt)
+                    cnt = 0
+                piece = self.piece_list[piece_id]
+                piece_symbol = piece_symbol_from_instance(piece).upper()
+                if piece.owner_id >= 2:
+                    piece_symbol = piece_symbol.lower()
+                # 白棋用大写字母表示, 黑棋用小写字母表示
+                fen_list.append(piece_symbol)
+            if cnt >= 1:
+                fen_list.append('%d' % cnt)
+            fen_list.append('/')
+        fen_list.pop(-1)
+        return ''.join(fen_list)
+
     def has_piece_at(self, coordinate_str):
         piece_id = self.chessboard.get_piece_id(coordinate_str)
         return False if piece_id is None \
