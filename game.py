@@ -1,11 +1,11 @@
 # -*- encoding:utf-8 -*-
 
-class ChessboardSimulator:
+class ChessboardSandbox:
     def __init__(self):
         self.data = {}
-        self.clear()
+        self.empty()
 
-    def clear(self):
+    def empty(self):
         for y_str in '1', '2', '3', '4', '5', '6', '7', '8':
             for x_str in 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H':
                 coordinate_position_str = x_str + y_str
@@ -124,7 +124,7 @@ BLACK_PIECES = {
 
 class Game():
     def __init__(self):
-        self.chessboard = ChessboardSimulator()
+        self.chessboard = ChessboardSandbox()
         self.piece_list = []
         self.piece_list.append(None)
         i = 1  # 棋子编号从 1 开始, 跳过 0 值
