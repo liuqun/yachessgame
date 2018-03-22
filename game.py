@@ -32,6 +32,10 @@ class ChessboardSandbox:
         self.data[coordinate] = piece_id
         return
 
+    def erase(self, coordinate_str):
+        self.mark(coordinate_str, None)
+        return
+
     def get_piece_id(self, coordinate_str):
         coordinate = self.__parse(coordinate_str)
         id = self.data[coordinate]
@@ -170,19 +174,19 @@ if '__main__' == __name__:
     # Sample moves:
     print('E2->E4')
     print()
-    game.chessboard.mark('E2', None)
     game.chessboard.mark('E4', selected_white_pawn)
+    game.chessboard.erase('E2')
     game.print_status()
     print()
     print('D7->D5')
     print()
-    game.chessboard.mark('D7', None)
     game.chessboard.mark('D5', selected_black_pawn)
+    game.chessboard.erase('D7')
     game.print_status()
     print()
     print('E4xD5')
     print()
-    game.chessboard.mark('E4', None)
     game.chessboard.mark('D5', selected_white_pawn)
+    game.chessboard.erase('E4')
     game.print_status()
     print()
