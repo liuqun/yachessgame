@@ -9,7 +9,7 @@ class ChessboardSandbox:
         for y_str in '1', '2', '3', '4', '5', '6', '7', '8':
             for x_str in 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H':
                 coordinate_str = x_str + y_str
-                coordinate = self.__parse(coordinate_str)
+                coordinate = parse_coordinate_str(coordinate_str)
                 self.data[coordinate] = None
 
     def print_status(self):
@@ -18,7 +18,7 @@ class ChessboardSandbox:
             print('%s:' % y_str, end='')
             for x_str in 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H':
                 coordinate_str = x_str + y_str
-                coordinate = self.__parse(coordinate_str)
+                coordinate = parse_coordinate_str(coordinate_str)
                 piece_symbol = '-'
                 piece_id = self.data[coordinate]
                 if piece_id:
@@ -28,7 +28,7 @@ class ChessboardSandbox:
         print('   A B C D E F G H')
 
     def mark(self, coordinate_str, piece_id):
-        coordinate = self.__parse(coordinate_str)
+        coordinate = parse_coordinate_str(coordinate_str)
         self.data[coordinate] = piece_id
         return
 
@@ -37,26 +37,27 @@ class ChessboardSandbox:
         return
 
     def get_piece_id(self, coordinate_str):
-        coordinate = self.__parse(coordinate_str)
+        coordinate = parse_coordinate_str(coordinate_str)
         id = self.data[coordinate]
         return id
 
-    @staticmethod
-    def __parse(coordinate_str) -> tuple:
-        """坐标解析
 
-        将字符串"A1"～"H8"转换为二维坐标(x, y), 要求字符串第一个字符必须是[a-h|A-H], 第二个字符必须是[1-8].
-        否则抛出一个 ValueError 异常.
-        :type coordinate_str: str
-        :return 坐标位置 (x, y)
-        """
-        if len(coordinate_str) < 2:
-            raise ValueError('Invalid coordinate str %r' % (coordinate_str))
-        x = ord(coordinate_str[0].upper()) - ord('A')
-        y = ord(coordinate_str[1]) - ord('1')
-        if not x in range(8) or not y in range(8):
-            raise ValueError('Invalid coordinate str %r' % (coordinate_str))
-        return x, y
+def parse_coordinate_str(coordinate_str):
+    """坐标解析
+
+    将字符串"A1"～"H8"转换为二维坐标(x, y), 要求字符串第一个字符必须是[a-h|A-H], 第二个字符必须是[1-8].
+    否则抛出一个 ValueError 异常.
+    :return 坐标位置 (x, y)
+    :rtype : tuple
+    :type coordinate_str: str
+    """
+    if len(coordinate_str) < 2:
+        raise ValueError('Invalid coordinate str %r' % (coordinate_str))
+    x = ord(coordinate_str[0].upper()) - ord('A')
+    y = ord(coordinate_str[1]) - ord('1')
+    if not x in range(8) or not y in range(8):
+        raise ValueError('Invalid coordinate str %r' % (coordinate_str))
+    return x, y
 
 
 class Piece:
