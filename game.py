@@ -165,6 +165,23 @@ class Game():
             print()
         print('   A B C D E F G H')
 
+    def has_piece_at(self, coordinate_str):
+        piece_id = self.chessboard.get_piece_id(coordinate_str)
+        return False if piece_id is None \
+            else True
+
+    def move_piece(self, from_coordinate_str, to_coordinate_str):
+        piece_id = self.chessboard.get_piece_id(from_coordinate_str)
+        if piece_id is None:
+            raise Game.InvalidMove('There is no piece at %r' % from_coordinate_str)
+        self.chessboard.erase(from_coordinate_str)
+        self.chessboard.mark(to_coordinate_str, piece_id)
+        # 当 from 和 to 恰好是同一个棋盘格子时, 执行上述代码后, 棋子将被放回原位置. 是否应该抛出 InvalidMove() 异常?
+        return
+
+    class InvalidMove(Exception):
+        pass
+
 
 if '__main__' == __name__:
     game = Game()
@@ -190,3 +207,10 @@ if '__main__' == __name__:
     game.chessboard.erase('E4')
     game.print_status()
     print()
+    # More moves:
+    print('\n\nBlack queen D8xD5:\n')
+    game.move_piece('D8', 'D5')
+    game.print_status()
+    print('\n\nWhite knight B1->C3:\n')
+    game.move_piece('B1', 'C3')
+    game.print_status()
