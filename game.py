@@ -8,50 +8,50 @@ class ChessboardSandbox:
     def empty(self):
         for y_str in '1', '2', '3', '4', '5', '6', '7', '8':
             for x_str in 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H':
-                coordinate_position_str = x_str + y_str
-                coordinate_position = self.__parse(coordinate_position_str)
-                self.data[coordinate_position] = None
+                coordinate_str = x_str + y_str
+                coordinate = self.__parse(coordinate_str)
+                self.data[coordinate] = None
 
     def print_status(self):
         print('   A B C D E F G H')
         for y_str in '8', '7', '6', '5', '4', '3', '2', '1':
             print('%s:' % y_str, end='')
             for x_str in 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H':
-                coordinate_position_str = x_str + y_str
-                coordinate_position = self.__parse(coordinate_position_str)
+                coordinate_str = x_str + y_str
+                coordinate = self.__parse(coordinate_str)
                 piece_symbol = '-'
-                piece_id = self.data[coordinate_position]
+                piece_id = self.data[coordinate]
                 if piece_id:
                     piece_symbol = '@'
                 print(' %s' % piece_symbol, end='')
             print()
         print('   A B C D E F G H')
 
-    def mark(self, coordinate_position_str, piece_id):
-        coordinate_position = self.__parse(coordinate_position_str)
-        self.data[coordinate_position] = piece_id
+    def mark(self, coordinate_str, piece_id):
+        coordinate = self.__parse(coordinate_str)
+        self.data[coordinate] = piece_id
         return
 
-    def get_piece_id(self, coordinate_position_str):
-        coordinate_position = self.__parse(coordinate_position_str)
-        id = self.data[coordinate_position]
+    def get_piece_id(self, coordinate_str):
+        coordinate = self.__parse(coordinate_str)
+        id = self.data[coordinate]
         return id
 
     @staticmethod
-    def __parse(coordinate_position_str) -> tuple:
+    def __parse(coordinate_str) -> tuple:
         """坐标解析
 
         将字符串"A1"～"H8"转换为二维坐标(x, y), 要求字符串第一个字符必须是[a-h|A-H], 第二个字符必须是[1-8].
         否则抛出一个 ValueError 异常.
-        :type coordinate_position_str: str
+        :type coordinate_str: str
         :return 坐标位置 (x, y)
         """
-        if len(coordinate_position_str) < 2:
-            raise ValueError('Invalid coordinate str %r' % (coordinate_position_str))
-        x = ord(coordinate_position_str[0].upper()) - ord('A')
-        y = ord(coordinate_position_str[1]) - ord('1')
+        if len(coordinate_str) < 2:
+            raise ValueError('Invalid coordinate str %r' % (coordinate_str))
+        x = ord(coordinate_str[0].upper()) - ord('A')
+        y = ord(coordinate_str[1]) - ord('1')
         if not x in range(8) or not y in range(8):
-            raise ValueError('Invalid coordinate str %r' % (coordinate_position_str))
+            raise ValueError('Invalid coordinate str %r' % (coordinate_str))
         return x, y
 
 
@@ -148,9 +148,9 @@ class Game():
         for y_str in '8', '7', '6', '5', '4', '3', '2', '1':
             print('%s:' % y_str, end='')
             for x_str in 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H':
-                coordinate_position_str = x_str + y_str
+                coordinate_str = x_str + y_str
                 piece_symbol = '-'
-                piece_id = self.chessboard.get_piece_id(coordinate_position_str)
+                piece_id = self.chessboard.get_piece_id(coordinate_str)
                 if piece_id:
                     piece = self.piece_list[piece_id]
                     piece_symbol = piece_symbol_from_instance(piece).upper()
