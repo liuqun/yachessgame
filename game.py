@@ -55,9 +55,9 @@ def parse_coordinate_str(coordinate_str):
         raise ValueError('Invalid coordinate str %r' % (coordinate_str))
     x = ord(coordinate_str[0].upper()) - ord('A')
     y = ord(coordinate_str[1]) - ord('1')
-    if x not in range(8) or y not in range(8):
-        raise ValueError('Invalid coordinate str %r' % (coordinate_str))
-    return x, y
+    if x >= 0 and x < 8 and y >= 0 and y < 8:
+        return x, y
+    raise ValueError('Invalid coordinate str %r' % (coordinate_str))
 
 
 class Piece:
