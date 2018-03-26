@@ -63,6 +63,7 @@ def parse_coordinate_str(coordinate_str):
 class Piece:
     id = None
     owner_id = None
+    attack_directions = set()
     move_directions = set()
     range_limit = 0  # 棋子最大移动格数, 用正整数 N 代表棋子最大移动距离(倍数 N). 例如王只能移动1格(N=1), 车象后可以移动7格(N=7)
 
@@ -72,8 +73,8 @@ class Piece:
         s = '<%s id=%d,owner_id=%d>' % (type(self).__name__, id, owner_id)
         return s
 
-    def get_fire_coverage(self, coordinate, chessboard_data):
-        """棋子火力范围, 包括棋子所防守的友方棋子所在的格子
+    def get_normal_moves(self, coordinate, chessboard_data):
+        """棋子可活动范围, 不包括可攻击的敌方棋子所在的格子
 
         :rtype : {(0,0), (7,7)}
         """
@@ -84,9 +85,9 @@ class Piece:
             for i in range(self.range_limit):
                 if x < 0 or x >= 8 or y < 0 or y >= 8:
                     break
-                nodes.add((x, y))
                 target = chessboard_data[(x, y)]
                 if target is None:
+                    nodes.add((x, y))
                     x += dx
                     y += dy
                     continue
@@ -94,36 +95,61 @@ class Piece:
                     break
         return nodes
 
+    def get_reachable_positions_of_friends_and_enemies(self, coordinate, chessboard_data):
+        """棋子火力范围, 包括棋子所防守的友方棋子所在的格子以及所攻击的敌方棋子所在的格子
+
+        :rtype : {(0,0), (7,7)}
+        """
+        nodes = set()
+        for dx, dy in self.attack_directions:
+            x = coordinate[0] + dx
+            y = coordinate[1] + dy
+            for i in range(self.range_limit):
+                if x < 0 or x >= 8 or y < 0 or y >= 8:
+                    break
+                target = chessboard_data[(x, y)]
+                if target is None:
+                    x += dx
+                    y += dy
+                    continue
+                else:
+                    nodes.add((x, y))
+                    break
+        return nodes
+
 
 class King(Piece):
     move_directions = {(1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1), (0, -1), (1, -1)}
+    attack_directions = move_directions
     range_limit = 1
 
 
 class Queen(Piece):
     move_directions = {(1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1), (0, -1), (1, -1)}
+    attack_directions = move_directions
     range_limit = 7
 
 
 class Rook(Piece):
     move_directions = {(1, 0), (0, 1), (-1, 0), (0, -1)}
+    attack_directions = move_directions
     range_limit = 7
 
 
 class Knight(Piece):
     move_directions = {(2, 1), (1, 2), (-1, 2), (-2, 1), (-2, -1), (-1, -2), (1, -2), (2, -1)}
+    attack_directions = move_directions
     range_limit = 1
 
 
 class Bishop(Piece):
     move_directions = {(1, 1), (-1, 1), (-1, -1), (1, -1)}
+    attack_directions = move_directions
     range_limit = 7
 
 
 class Pawn(Piece):
-    def get_fire_coverage(self, coordinate, chessboard_data):
-        nodes = set()
-        return nodes
+    pass
 
 
 def piece_symbol_from_instance(piece_instance):
@@ -166,6 +192,10 @@ class Game():
         i = 1  # 棋子编号从 1 开始, 跳过 0 值
         for coord, piece_class in WHITE_PIECES.items():
             piece = piece_class()
+            if piece_class == Pawn:
+                piece.range_limit = 1
+                piece.attack_directions = {(1, 1), (-1, 1)}
+                piece.move_directions = {(0, 1)}
             piece.id = i
             piece.owner_id = 1  # 棋手编号从 1 开始, 1 代表白棋棋手, 2 代表黑棋棋手
             self.piece_list.append(piece)
@@ -173,6 +203,10 @@ class Game():
             i += 1
         for coord, piece_class in BLACK_PIECES.items():
             piece = piece_class()
+            if piece_class == Pawn:
+                piece.range_limit = 1
+                piece.attack_directions = {(1, -1), (-1, -1)}
+                piece.move_directions = {(0, -1)}
             piece.id = i
             piece.owner_id = 2  # 棋手编号从 1 开始, 1 代表白棋棋手, 2 代表黑棋棋手
             self.piece_list.append(piece)
@@ -248,7 +282,9 @@ class Game():
         if piece_id is None:
             raise Game.InvalidMove('There is no piece at %r' % from_coordinate_str)
         piece = self.piece_list[piece_id]
-        fire_coverage = self.get_fire_coverage_of_piece_at(from_coordinate_str)
+        coordinate = parse_coordinate_str(from_coordinate_str)
+        fire_coverage = piece.get_reachable_positions_of_friends_and_enemies(coordinate,
+                                                                             chessboard_data=self.chessboard.data)
         destination_coordinates = set()
         for x, y in fire_coverage:
             target_piece_id = self.chessboard.data[(x, y)]
@@ -259,19 +295,12 @@ class Game():
                 if target_piece.owner_id == piece.owner_id:  # 目的地棋盘格子上不能有己方棋子阻挡
                     continue
             destination_coordinates.add((x, y))
+        destination_coordinates |= piece.get_normal_moves(coordinate, chessboard_data=self.chessboard.data)
         # 将(x,y)坐标转换为输出字符串列表
         result = []
         for x, y in destination_coordinates:
             result.append('%c%c' % (chr(ord('A') + x), chr(ord('1') + y)))
         return sorted(result)
-
-    def get_fire_coverage_of_piece_at(self, coordinate_str):
-        piece_id = self.chessboard.get_piece_id(coordinate_str)
-        if piece_id is None:
-            raise Game.InvalidMove('There is no piece at %r' % coordinate_str)
-        piece = self.piece_list[piece_id]
-        coordinate = parse_coordinate_str(coordinate_str)
-        return piece.get_fire_coverage(coordinate, chessboard_data=self.chessboard.data)
 
 
 if '__main__' == __name__:
