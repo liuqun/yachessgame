@@ -331,29 +331,34 @@ class Game():
 
 if '__main__' == __name__:
     game = Game()
-    # Pick up chess piece:
-    selected_white_pawn = game.chessboard.get_piece_id('E2')
-    selected_black_pawn = game.chessboard.get_piece_id('D7')
     # Sample moves:
-    print('E2->E4')
+    choices = game.get_valid_destinations_of_piece_at('E2')  # 检查当前白棋兵E4有几种走法
+    print('At the beginning, the white pawn E2 has %d choice(s): %r' % (len(choices), choices))
     print()
-    game.chessboard.mark('E4', selected_white_pawn)
-    game.chessboard.erase('E2')
+    print('Choosing E2->E4:')
+    game.move_piece('E2', 'E4')
+    print()
     game.print_status()
     print()
-    print('D7->D5')
+    choices = game.get_valid_destinations_of_piece_at('D7')  # 检查当前黑棋兵D7有几种走法
+    print('White pawn D7 has %d choice(s): %r' % (len(choices), choices))
     print()
-    game.chessboard.mark('D5', selected_black_pawn)
-    game.chessboard.erase('D7')
+    print('Choosing D7->D5:')
+    game.move_piece('D7', 'D5')
+    print()
     game.print_status()
     print()
-    print('E4xD5')
+    choices = game.get_valid_destinations_of_piece_at('E4')  # 检查当前白棋兵E4有几种走法
+    print('Now, white pawn E4 has %d choice(s): %r' % (len(choices), choices))
     print()
-    game.chessboard.mark('D5', selected_white_pawn)
-    game.chessboard.erase('E4')
+    print('Choosing E4xD5:')
+    game.move_piece('E4', 'D5')
+    print()
     game.print_status()
     print()
     # More moves:
+    choices = game.get_valid_destinations_of_piece_at('D8')  # 检查当前黑棋后D8有几种走法
+    print('Now, black queen D8 has %d choice(s): %r' % (len(choices), choices), end='')
     print('\n\nBlack queen D8xD5:\n')
     game.move_piece('D8', 'D5')
     game.print_status()
