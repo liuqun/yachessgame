@@ -150,6 +150,8 @@ class Bishop(Piece):
 
 
 class Pawn(Piece):
+    range_limit = 1
+
     def get_normal_moves(self, coordinate, chessboard_data):
         """棋子可活动范围, 不包括可攻击的敌方棋子所在的格子
 
@@ -217,7 +219,6 @@ class Game():
         for coord, piece_class in WHITE_PIECES.items():
             piece = piece_class()
             if piece_class == Pawn:
-                piece.range_limit = 1
                 piece.attack_directions = {(1, 1), (-1, 1)}
                 piece.move_directions = {(0, 1)}
             piece.id = i
@@ -228,7 +229,6 @@ class Game():
         for coord, piece_class in BLACK_PIECES.items():
             piece = piece_class()
             if piece_class == Pawn:
-                piece.range_limit = 1
                 piece.attack_directions = {(1, -1), (-1, -1)}
                 piece.move_directions = {(0, -1)}
             piece.id = i
