@@ -66,6 +66,7 @@ class Piece:
     attack_directions = set()
     move_directions = set()
     range_limit = 0  # 棋子最大移动格数, 用正整数 N 代表棋子最大移动距离(倍数 N). 例如王只能移动1格(N=1), 车象后可以移动7格(N=7)
+    has_been_moved = False
 
     def __repr__(self):
         id = self.id or -1
@@ -149,7 +150,30 @@ class Bishop(Piece):
 
 
 class Pawn(Piece):
-    pass
+    def get_normal_moves(self, coordinate, chessboard_data):
+        """棋子可活动范围, 不包括可攻击的敌方棋子所在的格子
+
+        :rtype : {(0,0), (7,7)}
+        """
+        move_range_limit = self.range_limit
+        if not self.has_been_moved:
+            move_range_limit += 1
+        nodes = set()
+        for dx, dy in self.move_directions:
+            x = coordinate[0] + dx
+            y = coordinate[1] + dy
+            for i in range(move_range_limit):
+                if x < 0 or x >= 8 or y < 0 or y >= 8:
+                    break
+                target = chessboard_data[(x, y)]
+                if target is None:
+                    nodes.add((x, y))
+                    x += dx
+                    y += dy
+                    continue
+                else:
+                    break
+        return nodes
 
 
 def piece_symbol_from_instance(piece_instance):
@@ -271,6 +295,8 @@ class Game():
             raise Game.InvalidMove('There is no piece at %r' % from_coordinate_str)
         self.chessboard.erase(from_coordinate_str)
         self.chessboard.mark(to_coordinate_str, piece_id)
+        piece = self.piece_list[piece_id]
+        piece.has_been_moved = True
         # 当 from 和 to 恰好是同一个棋盘格子时, 执行上述代码后, 棋子将被放回原位置. 是否应该抛出 InvalidMove() 异常?
         return
 
